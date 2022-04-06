@@ -1,0 +1,851 @@
+﻿CREATE DATABASE	QuanLyCuaHangLinhKien
+
+
+SELECT SERVERPROPERTY('IsFullTextInstalled')
+CREATE FULLTEXT CATALOG [myFullText] WITH ACCENT_SENSITIVITY = ON
+/*Tạo Mã Khách Hàng Tự Động*/
+CREATE FUNCTION AUTO_IDKH()
+RETURNS VARCHAR(5)
+AS
+BEGIN
+	DECLARE @ID VARCHAR(5)
+	IF (SELECT COUNT(MAKH) FROM KHACHHANG) = 0
+		SET @ID = '0'
+	ELSE
+		SELECT @ID = MAX(RIGHT(MAKH, 3)) FROM KHACHHANG
+		SELECT @ID = CASE
+			WHEN @ID >= 0 and @ID < 9 THEN 'KH00' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+			WHEN @ID >= 9 THEN 'KH0' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+		END
+	RETURN @ID
+END
+/*Bảng Khách Hàng*/
+CREATE TABLE KhachHang
+(
+	MAKH CHAR(5) PRIMARY KEY CONSTRAINT IDKH DEFAULT DBO.AUTO_IDKH(),
+	TENKH NVARCHAR(30) NOT NULL,
+	GIOITINH NVARCHAR(5) NOT NULL,
+	NGAYSINH date,
+	EMAIL CHAR(30),
+	DIENTHOAI CHAR(12),
+	CMND INT,
+	DIACHI NVARCHAR(40),
+	IMAGES CHAR(100)
+)
+CREATE PROC select_KH
+as
+	SELECT * FROM [dbo].[KhachHang]
+
+
+/*Tạo Mã Chức Vụ Tự Động*/
+CREATE FUNCTION AUTO_IDCV()
+RETURNS VARCHAR(5)
+AS
+BEGIN
+	DECLARE @ID VARCHAR(5)
+	IF (SELECT COUNT(MACV) FROM CHUCVU) = 0
+		SET @ID = '0'
+	ELSE
+		SELECT @ID = MAX(RIGHT(MACV, 3)) FROM CHUCVU
+		SELECT @ID = CASE
+			WHEN @ID >= 0 and @ID < 9 THEN 'CV00' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+			WHEN @ID >= 9 THEN 'CV0' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+		END
+	RETURN @ID
+END
+/*Bảng Chức Vụ*/
+CREATE TABLE ChucVu
+(
+	MACV CHAR(5) PRIMARY KEY CONSTRAINT IDCV DEFAULT DBO.AUTO_IDCV(),
+	TENCV NVARCHAR(30) NOT NULL,
+	HESOLUONG FLOAT
+)
+CREATE PROC select_CV
+as
+	SELECT * FROM [dbo].[ChucVu]
+
+/*Tạo Mã Nhân Viên Tự Động*/
+CREATE FUNCTION AUTO_IDNV()
+RETURNS VARCHAR(5)
+AS
+BEGIN
+	DECLARE @ID VARCHAR(5)
+	IF (SELECT COUNT(MANV) FROM NHANVIEN) = 0
+		SET @ID = '0'
+	ELSE
+		SELECT @ID = MAX(RIGHT(MANV, 3)) FROM NHANVIEN
+		SELECT @ID = CASE
+			WHEN @ID >= 0 and @ID < 9 THEN 'NV00' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+			WHEN @ID >= 9 THEN 'NV0' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+		END
+	RETURN @ID
+END
+
+/*Bảng Nhân Viên*/
+CREATE TABLE NhanVien
+(
+	MANV CHAR(5) PRIMARY KEY CONSTRAINT IDNV DEFAULT DBO.AUTO_IDNV(),
+	MACV CHAR(5) NOT NULL,
+	CONSTRAINT fk_MaChucVu
+	FOREIGN KEY(MACV)
+	REFERENCES CHUCVU(MACV)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	TENNV NVARCHAR(30) NOT NULL,
+	GIOITINH NVARCHAR(5) NOT NULL,
+	NGAYSINH DATE,
+	EMAIL CHAR(30),
+	DIENTHOAI CHAR(12),
+	CMND INT,
+	DIACHI NVARCHAR(40),
+	NGAYVAOLAM DATE,
+	IMAGES CHAR(100)
+)
+
+/*Tạo Proceduce Lấy Danh Sách Nhân Viên*/
+CREATE PROC select_NV
+as SELECT * FROM NhanVien
+/*Tạo Mã Loại Linh Kiện Tự Động*/
+CREATE FUNCTION AUTO_IDLLK()
+RETURNS VARCHAR(6)
+AS
+BEGIN
+	DECLARE @ID VARCHAR(6)
+	IF (SELECT COUNT(MALOAI) FROM LOAILINHKIEN) = 0
+		SET @ID = '0'
+	ELSE
+		SELECT @ID = MAX(RIGHT(MALOAI, 3)) FROM LOAILINHKIEN
+		SELECT @ID = CASE
+			WHEN @ID >= 0 and @ID < 9 THEN 'LLK00' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+			WHEN @ID >= 9 THEN 'LLK0' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+		END
+	RETURN @ID
+END
+/*Bảng Loại Linh Kiện*/
+CREATE TABLE LoaiLinhKien
+(
+	MALOAI CHAR(6) PRIMARY KEY CONSTRAINT IDLLK DEFAULT DBO.AUTO_IDLLK(),
+	TENLOAI NVARCHAR(30) NOT NULL,
+)
+CREATE PROC select_LLK
+as
+	SELECT * FROM [dbo].[LoaiLinhKien]
+
+
+/*Tạo Mã Nhà Sản Xuất Tự Động*/
+CREATE FUNCTION AUTO_IDNSX()
+RETURNS VARCHAR(6)
+AS
+BEGIN
+	DECLARE @ID VARCHAR(6)
+	IF (SELECT COUNT(MANHASX) FROM NHASANXUAT) = 0
+		SET @ID = '0'
+	ELSE
+		SELECT @ID = MAX(RIGHT(MANHASX, 3)) FROM NHASANXUAT
+		SELECT @ID = CASE
+			WHEN @ID >= 0 and @ID < 9 THEN 'NSX00' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+			WHEN @ID >= 9 THEN 'NSX0' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+		END
+	RETURN @ID
+END
+/*Bảng Nhà Sản Xuất*/
+CREATE TABLE NhaSanXuat
+(
+	MANHASX CHAR(6) PRIMARY KEY CONSTRAINT IDNSX DEFAULT DBO.AUTO_IDNSX(),
+	TENNHASX NVARCHAR(30) NOT NULL,
+	DIACHI NVARCHAR(40) NOT NULL,
+)
+
+CREATE PROC select_NSX
+as
+	SELECT * FROM [dbo].[NhaSanXuat]
+
+/*Tạo Mã Linh Kiện Tự Động*/
+CREATE FUNCTION AUTO_IDLK()
+RETURNS VARCHAR(5)
+AS
+BEGIN
+	DECLARE @ID VARCHAR(5)
+	IF (SELECT COUNT(MALK) FROM LINHKIEN) = 0
+		SET @ID = '0'
+	ELSE
+		SELECT @ID = MAX(RIGHT(MALK, 3)) FROM LINHKIEN
+		SELECT @ID = CASE
+			WHEN @ID >= 0 and @ID < 9 THEN 'LK00' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+			WHEN @ID >= 9 THEN 'LK0' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+		END
+	RETURN @ID
+END
+/*Bảng Linh Kiện*/
+CREATE TABLE LinhKien
+(
+	MALK CHAR(5) PRIMARY KEY CONSTRAINT IDLK DEFAULT DBO.AUTO_IDLK(),
+	MALOAI CHAR(6) NOT NULL,
+	CONSTRAINT fk_MaLoai
+	FOREIGN KEY(MALOAI)
+	REFERENCES LOAILINHKIEN(MALOAI)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	MANHASX CHAR(6) NOT NULL,
+	CONSTRAINT fk_MaNhaSX
+	FOREIGN KEY(MANHASX)
+	REFERENCES NHASANXUAT(MANHASX)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	TENLK NVARCHAR(30) NOT NULL,
+	BAOHANH NVARCHAR(10) NOT NULL,
+	NGAYSANXUAT DATE,
+	TINHTRANG NVARCHAR(30),
+	DONVITINH NVARCHAR(10),
+	DONGIA FLOAT,
+	SOLUONG INT,
+	IMAGES CHAR(200)
+)
+
+CREATE PROC select_LK
+as
+	SELECT * FROM [dbo].[LinhKien]
+
+/*Tạo Mã Giỏ Hàng Tự Động*/
+CREATE FUNCTION AUTO_IDGH()
+RETURNS VARCHAR(5)
+AS
+BEGIN
+	DECLARE @ID VARCHAR(5)
+	IF (SELECT COUNT(MAGH) FROM GIOHANG) = 0
+		SET @ID = '0'
+	ELSE
+		SELECT @ID = MAX(RIGHT(MAGH, 3)) FROM GIOHANG
+		SELECT @ID = CASE
+			WHEN @ID >= 0 and @ID < 9 THEN 'GH00' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+			WHEN @ID >= 9 THEN 'GH0' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+		END
+	RETURN @ID
+END
+/*Bảng Giỏ Hàng */
+CREATE TABLE GioHang
+(
+	MAGH CHAR(5) PRIMARY KEY CONSTRAINT IDGH DEFAULT DBO.AUTO_IDGH(),
+	MAKH CHAR(5) NOT NULL,
+	CONSTRAINT fk_MaKH
+	FOREIGN KEY(MAKH)
+	REFERENCES KHACHHANG(MAKH)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+)
+CREATE TRIGGER trg_themKhach ON [dbo].[KhachHang]
+FOR INSERT
+AS
+	INSERT INTO [dbo].[GioHang]([MAKH])
+	SELECT i.MAKH
+	FROM inserted i
+/*Bảng Chi Tiết Giỏ Hàng*/
+CREATE TABLE CT_GioHang
+(
+	MAGH CHAR(5) NOT NULL,
+	MALK CHAR(5) NOT NULL,
+	SOLUONG INT,
+	CONSTRAINT pk_CTGioHang
+	PRIMARY KEY(MAGH,MALK),
+	CONSTRAINT fk_CTGioHang_GH
+	FOREIGN KEY(MAGH)
+	REFERENCES GIOHANG(MAGH)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_CTGH_LK
+	FOREIGN KEY(MALK)
+	REFERENCES LINHKIEN(MALK)
+	ON DELETE CASCADE ON UPDATE CASCADE
+)
+CREATE PROC select_CTGH
+as
+	SELECT * FROM [dbo].[CT_GioHang]
+
+
+/*Tạo Mã Đơn Đặt Hàng Tự Động*/
+CREATE FUNCTION AUTO_IDDDH()
+RETURNS VARCHAR(6)
+AS
+BEGIN
+	DECLARE @ID VARCHAR(6)
+	IF (SELECT COUNT(MADDH) FROM DONDATHANG) = 0
+		SET @ID = '0'
+	ELSE
+		SELECT @ID = MAX(RIGHT(MADDH, 3)) FROM DONDATHANG
+		SELECT @ID = CASE
+			WHEN @ID >= 0 and @ID < 9 THEN 'DDH00' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+			WHEN @ID >= 9 THEN 'DDH0' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+		END
+	RETURN @ID
+END
+/*Bảng Đơn Đặt Hàng */
+CREATE TABLE DonDatHang
+(
+	MaDDH CHAR(6) PRIMARY KEY CONSTRAINT IDDDH DEFAULT DBO.AUTO_IDDDH(),
+	MAKH CHAR(5) NOT NULL,
+	PTTT NVARCHAR(30) NOT NULL,
+	TINHTRANG NVARCHAR(10) NOT NULL,
+	NGAYDATHANG DATE,
+	CONSTRAINT fk_MaKHDH
+	FOREIGN KEY(MAKH)
+	REFERENCES KHACHHANG(MAKH)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+)
+CREATE TABLE CT_DonDatHang
+(
+	MADDH CHAR(6) NOT NULL,
+	MALK CHAR(5) NOT NULL,
+	SOLUONG INT,
+	CONSTRAINT pk_CTDDHang
+	PRIMARY KEY(MADDH,MALK),
+	CONSTRAINT fk_CTDDHang_DDH
+	FOREIGN KEY(MADDH)
+	REFERENCES DONDATHANG(MaDDH)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_CTGH_LKDH
+	FOREIGN KEY(MALK)
+	REFERENCES LINHKIEN(MALK)
+	ON DELETE CASCADE ON UPDATE CASCADE
+)
+CREATE PROC select_CTDDH
+as
+	SELECT * FROM [dbo].[CT_DonDatHang]
+
+
+/*HoaDon,PhieuNhap,BaoHanh*/
+CREATE FUNCTION AUTO_IDNCC()
+RETURNS VARCHAR(6)
+AS
+BEGIN
+	DECLARE @ID VARCHAR(6)
+	IF (SELECT COUNT(MANHACC) FROM NHACUNGCAP) = 0
+		SET @ID = '0'
+	ELSE
+		SELECT @ID = MAX(RIGHT(MANHACC, 3)) FROM NHACUNGCAP
+		SELECT @ID = CASE
+			WHEN @ID >= 0 and @ID < 9 THEN 'NCC00' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+			WHEN @ID >= 9 THEN 'NCC0' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+		END
+	RETURN @ID
+END
+/*Bảng Nhà Cung Cấp*/
+CREATE TABLE NhaCungCap
+(
+	MANHACC CHAR(6) PRIMARY KEY CONSTRAINT IDNCC DEFAULT DBO.AUTO_IDNCC(),
+	TENNHACC NVARCHAR(30) NOT NULL,
+	DIACHI NVARCHAR(50) NOT NULL,
+	SODT CHAR(30) NOT NULL,
+	EMAIL CHAR(30) NOT NULL,
+	IMAGES CHAR(100)
+)
+
+CREATE PROC select_NCC  
+as
+	SELECT * FROM [dbo].[NhaCungCap]
+/*HoaDonBanHang*/
+CREATE FUNCTION AUTO_IDHDBH()
+RETURNS VARCHAR(7)
+AS
+BEGIN
+	DECLARE @ID VARCHAR(7)
+	IF (SELECT COUNT(MAHDBH) FROM HOADONBANHANG) = 0
+		SET @ID = '0'
+	ELSE
+		SELECT @ID = MAX(RIGHT(MAHDBH, 3)) FROM HOADONBANHANG
+		SELECT @ID = CASE
+			WHEN @ID >= 0 and @ID < 9 THEN 'HDBH00' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+			WHEN @ID >= 9 THEN 'HDBH0' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+		END
+	RETURN @ID
+END
+CREATE TABLE HoaDonBanHang
+(
+	MaHDBH CHAR(7) PRIMARY KEY CONSTRAINT IDHDBH DEFAULT DBO.AUTO_IDHDBH(),
+	MAKH CHAR(5) NOT NULL,
+	MANV CHAR(5) NOT NULL,
+	PTTT NVARCHAR(30) NOT NULL,
+	NGAYLAPHD DATE,
+	CONSTRAINT fk_MaKHMH
+	FOREIGN KEY(MAKH)
+	REFERENCES KHACHHANG(MAKH)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_MaNV
+	FOREIGN KEY(MANV)
+	REFERENCES NHANVIEN(MANV)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+)
+/*CT*/
+CREATE TABLE CT_HoaDonBanHang
+(
+	MaHDBH CHAR(7) NOT NULL,
+	MALK CHAR(5) NOT NULL,
+	SOLUONG INT,
+	CONSTRAINT pk_CTHDBH
+	PRIMARY KEY(MAHDBH,MALK),
+	CONSTRAINT fk_MaHDBH
+	FOREIGN KEY(MAHDBH)
+	REFERENCES HOADONBANHANG(MAHDBH)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_MALKB
+	FOREIGN KEY(MALK)
+	REFERENCES LINHKIEN(MALK)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+)
+CREATE FUNCTION AUTO_IDHDNH()
+RETURNS VARCHAR(7)
+AS
+BEGIN
+	DECLARE @ID VARCHAR(7)
+	IF (SELECT COUNT(MAHDNH) FROM HOADONNHAPHANG) = 0
+		SET @ID = '0'
+	ELSE
+		SELECT @ID = MAX(RIGHT(MAHDNH, 3)) FROM HOADONNHAPHANG
+		SELECT @ID = CASE
+			WHEN @ID >= 0 and @ID < 9 THEN 'HDNH00' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+			WHEN @ID >= 9 THEN 'HDNH0' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+		END
+	RETURN @ID
+END
+CREATE TABLE HoaDonNhapHang
+(
+	MaHDNH CHAR(7) PRIMARY KEY CONSTRAINT IDHDNH DEFAULT DBO.AUTO_IDHDNH(),
+	MANHACC CHAR(6) NOT NULL,
+	MANV CHAR(5) NOT NULL,
+	NGAYLAPHD DATE,
+	CONSTRAINT fk_MaNCCLK
+	FOREIGN KEY(MANHACC)
+	REFERENCES NHACUNGCAP(MANHACC)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_MaNVNH
+	FOREIGN KEY(MANV)
+	REFERENCES NHANVIEN(MANV)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+)
+CREATE TABLE CT_HoaDonNhapHang
+(
+	MaHDNH CHAR(7) NOT NULL,
+	MALK CHAR(5) NOT NULL,
+	SOLUONG INT,
+	DONGIA FLOAT,
+	CONSTRAINT pk_CTHDNH
+	PRIMARY KEY(MAHDNH,MALK),
+	CONSTRAINT fk_MaHDNH
+	FOREIGN KEY(MAHDNH)
+	REFERENCES HOADONNHAPHANG(MAHDNH)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_MALKN
+	FOREIGN KEY(MALK)
+	REFERENCES LINHKIEN(MALK)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+)
+/*BaoHanh*/
+CREATE FUNCTION AUTO_IDBH()
+RETURNS VARCHAR(5)
+AS
+BEGIN
+	DECLARE @ID VARCHAR(5)
+	IF (SELECT COUNT(MABH) FROM PHIEUBAOHANH) = 0
+		SET @ID = '0'
+	ELSE
+		SELECT @ID = MAX(RIGHT(MABH, 3)) FROM PHIEUBAOHANH
+		SELECT @ID = CASE
+			WHEN @ID >= 0 and @ID < 9 THEN 'BH00' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+			WHEN @ID >= 9 THEN 'BH0' + CONVERT(CHAR, CONVERT(INT, @ID) + 1)
+		END
+	RETURN @ID
+END
+CREATE TABLE PhieuBaoHanh
+(
+	MaBH CHAR(5) PRIMARY KEY CONSTRAINT IDBH DEFAULT DBO.AUTO_IDBH(),
+	MAHDBH CHAR(7) NOT NULL,
+	NGAYLAPPHIEU DATE,
+	CONSTRAINT fk_MaHDP
+	FOREIGN KEY(MAHDBH)
+	REFERENCES HOADONBANHANG(MAHDBH)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+)
+CREATE TABLE CT_PhieuBaoHanh
+(
+	MaBH CHAR(5) NOT NULL,
+	MALK CHAR(5) NOT NULL,
+	SOLUONG INT,
+	CONSTRAINT pk_CTPBH
+	PRIMARY KEY(MABH,MALK),
+	CONSTRAINT fk_MaBHP
+	FOREIGN KEY(MABH)
+	REFERENCES PHIEUBAOHANH(MABH)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_MALKP
+	FOREIGN KEY(MALK)
+	REFERENCES LINHKIEN(MALK)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+)
+
+
+SELECT lk.TENLK,ct.SOLUONG,lk.MALK,lk.BAOHANH,hd.NGAYLAPHD,kh.TENKH,kh.DIENTHOAI,kh.DIACHI
+FROM CT_PhieuBaoHanh ct JOIN PhieuBaoHanh bh ON ct.MaBH = bh.MaBH
+JOIN LinhKien lk ON ct.MALK = lk.MALK
+JOIN HoaDonBanHang hd ON hd.MaHDBH = bh.MAHDBH
+JOIN KhachHang kh ON kh.MAKH = hd.MAKH
+WHERE hd.MaHDBH = 'HDBH001'
+CREATE TRIGGER trg_themCTGH ON [dbo].[CT_GioHang]
+FOR INSERT
+AS
+	UPDATE [dbo].[LinhKien] SET [SOLUONG] = lk.SOLUONG - i.SOLUONG
+	FROM [dbo].[LinhKien] lk, inserted i
+	WHERE lk.MALK = i.MALK
+
+
+CREATE TABLE TaiKhoan
+(
+	TENDN CHAR(15) NOT NULL PRIMARY KEY,
+	MATKHAU CHAR(30) NOT NULL,
+	MA CHAR(5),
+	TEN NVARCHAR(40) NOT NULL,
+	QUYEN NVARCHAR(50) NOT NULL
+)
+
+/*
+SELECT * FROM [dbo].[NhanVien] WHERE CONTAINS(DIACHI, N'Minh')
+select * from NHANVIEN where DIACHI LIKE '%Thủ Đức%'
+SELECT * FROM [dbo].[LinhKien] WHERE [DONGIA] > 1000000 and [DONGIA] < 6000000
+SELECT * FROM [dbo].[KhachHang] WHERE 
+SELECT * FROM [dbo].[KhachHang] WHERE YEAR(GETDATE()) - YEAR(NGAYSINH) BETWEEN 19 and 20
+*/
+
+/*
+SELECT MAX([MAKH]) FROM [dbo].[KhachHang]
+INSERT INTO [dbo].[HoaDonBanHang]([MAKH],[MANV],[PTTT],[NGAYLAPHD])
+SELECT * FROM [dbo].[HoaDonBanHang]
+SELECT * FROM [dbo].[CT_HoaDonBanHang]
+DELETE FROM [dbo].[HoaDonBanHang]
+DELETE FROM [dbo].[CT_GioHang]
+DELETE FROM [dbo].[CT_HoaDonNhapHang]
+DELETE FROM [dbo].[HoaDonNhapHang]
+*/
+
+/*Chèn dữ liệu*/
+/*Thêm 1 Khách Hàng Mới*/
+INSERT INTO [dbo].[KhachHang]([TENKH],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[IMAGES])
+VALUES(N'Nguyễn Văn Hùng', N'Nam','2000-04-25','hung2504@gmail.com','0854926311',197391890,N'Gò vấp, Tp.HCM',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\userKH1.png')
+INSERT INTO [dbo].[KhachHang]([TENKH],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[IMAGES])
+VALUES(N'Nguyễn Văn Hoàng', N'Nam','2002-06-28','hoang2806@gmail.com','0964387243',197378999,N'Tân Bình, Tp.HCM',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[KhachHang]([TENKH],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[IMAGES])
+VALUES(N'Lê Đức Quân', N'Nam','2000-07-22','Quan2207@gmail.com','0829674345',478245985,N'Tân Phú, Tp.HCM',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[KhachHang]([TENKH],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[IMAGES])
+VALUES(N'Lê Thu Hiền', N'Nữ','2001-05-10','Hien10005@gmail.com','0734925463',143785980,N'Thủ Đức, Tp.HCM',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[KhachHang]([TENKH],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[IMAGES])
+VALUES(N'Lê Hoài Như', N'Nữ','2001-11-12','Nhu1211@gmail.com','0946285732',198345674,N'Quận 1, Tp.HCM',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[KhachHang]([TENKH],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[IMAGES])
+VALUES(N'Lê Mạnh Hùng', N'Nam','2000-08-10','manhung1008@gmail.com','0914576695',197354777,N'Quận 2, Tp.HCM',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[KhachHang]([TENKH],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[IMAGES])
+VALUES(N'Nguyễn Quang Dũng', N'Nam','2000-05-23','dunghy2232@gmail.com','0945723542',197538523,N'Quận Bình Thạnh, Tp.HCM',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[KhachHang]([TENKH],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[IMAGES])
+VALUES(N'Ngô Hiếu Ngọc', N'Nữ','2000-04-24','ngocngoc244@gmail.com','096346257',197834624,N'Quận 12, Tp.HCM',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[KhachHang]([TENKH],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[IMAGES])
+VALUES(N'Lê Thị Minh Hằng', N'Nữ','2000-07-14','hangdgh2321@gmail.com','0734534323',197654345,N'Quận 3, Tp.HCM',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[KhachHang]([TENKH],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[IMAGES])
+VALUES(N'Lê Nguyên Long', N'Nam','2000-09-28','longnguyen123@gmail.com','0734523341',184357634,N'Quận 10, Tp.HCM',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+DELETE FROM [dbo].[KhachHang]
+
+/*Thêm 1 Chức Vụ Mới*/
+INSERT INTO [dbo].[ChucVu]([TENCV],[HESOLUONG])
+VALUES(N'Nhân Viên Kinh Doanh',1.5)
+INSERT INTO [dbo].[ChucVu]([TENCV],[HESOLUONG])
+VALUES(N'Nhân Viên Kế Toán',2.0)
+INSERT INTO [dbo].[ChucVu]([TENCV],[HESOLUONG])
+VALUES(N'Nhân Viên Kỹ Thuật',1.5)
+INSERT INTO [dbo].[ChucVu]([TENCV],[HESOLUONG])
+VALUES(N'Nhân Viên Kho',1.5)
+INSERT INTO [dbo].[ChucVu]([TENCV],[HESOLUONG])
+VALUES(N'Nhân Viên Thu Ngân',1.5)
+
+DELETE FROM ChucVu
+/*Thêm 1 Nhân Viên Mới*/
+INSERT INTO [dbo].[NhanVien]([MACV],[TENNV],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[NGAYVAOLAM],[IMAGES])
+VALUES('CV001',N'Nguyễn Văn Anh', N'Nam','2000-03-12','Anh2345543@gmail.com','0972972842',154643743,N'Thủ Đức, Tp.HCM','2020-10-10',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[NhanVien]([MACV],[TENNV],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[NGAYVAOLAM],[IMAGES])
+VALUES('CV002',N'Trần Thị Vân Khánh', N'Nữ','2000-04-28','khanhvan12345@gmail.com','095642843',187545234,N'Quận Bình Thạnh, Tp.HCM','2020-10-10',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[NhanVien]([MACV],[TENNV],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[NGAYVAOLAM],[IMAGES])
+VALUES('CV003',N'Lê Khắc Trung', N'Nam','2000-07-28','trungngu123@gmail.com','0987536999',234587645,N'Tân Phú, Tp.HCM','2020-10-10',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[NhanVien]([MACV],[TENNV],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[NGAYVAOLAM],[IMAGES])
+VALUES('CV004',N'Lê Thạc Đạt', N'Nam','2000-11-04','datquynhvinh1231@gmail.com','0375779958',657234999,N'Gò vấp, Tp.HCM','2020-10-10',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[NhanVien]([MACV],[TENNV],[GIOITINH],[NGAYSINH],[EMAIL],[DIENTHOAI],[CMND],[DIACHI],[NGAYVAOLAM],[IMAGES])
+VALUES('CV004',N'Nguyễn Quỳnh Anh', N'Nữ','2001-04-25','quynhah345@gmail.com','0915387654',23464345,N'Quận 1, Tp.HCM','2020-10-10',
+'E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+DELETE FROM NhanVien
+/*Thêm 1 Loại Linh Kiện*/
+INSERT INTO [dbo].[LoaiLinhKien]([TENLOAI])
+VALUES(N'Màn Hình')
+INSERT INTO [dbo].[LoaiLinhKien]([TENLOAI])
+VALUES(N'Bàn phím')
+INSERT INTO [dbo].[LoaiLinhKien]([TENLOAI])
+VALUES(N'Chuột + Lót chuột')
+INSERT INTO [dbo].[LoaiLinhKien]([TENLOAI])
+VALUES(N'Mainboard - Bo mạch chủ')
+INSERT INTO [dbo].[LoaiLinhKien]([TENLOAI])
+VALUES(N'CPU - Bộ vi xử lý')
+INSERT INTO [dbo].[LoaiLinhKien]([TENLOAI])
+VALUES(N'Ram - Bộ nhớ trong')
+INSERT INTO [dbo].[LoaiLinhKien]([TENLOAI])
+VALUES(N'VGA - Card màn hình')
+INSERT INTO [dbo].[LoaiLinhKien]([TENLOAI])
+VALUES(N'SSD - Ổ cứng')
+INSERT INTO [dbo].[LoaiLinhKien]([TENLOAI])
+VALUES(N'PSU - Nguồn máy tính')
+INSERT INTO [dbo].[LoaiLinhKien]([TENLOAI])
+VALUES(N'NCASE - Vỏ máy tính')
+INSERT INTO [dbo].[LoaiLinhKien]([TENLOAI])
+VALUES(N'Tản nhiệt - Fan RGB')
+
+SELECT * FROM [dbo].[LoaiLinhKien]
+DELETE FROM [dbo].[LoaiLinhKien]
+
+/*Thêm 1 Nhà Sản Xuất*/
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('Razer',N'Hoa Kỳ')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('HP',N'Việt Nam')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('Asus',N'Việt Nam')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('SamSung',N'TP.Hồ Chí Minh')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('Dell',N'TP.Hồ Chí Minh')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('MSI',N'TP.Hồ Chí Minh')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('AOC',N'TP.Hồ Chí Minh')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('Gigabyte',N'TP.Hồ Chí Minh')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('Logitech',N'TP.Hồ Chí Minh')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('Leopold',N'TP.Hồ Chí Minh')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('Dare - U',N'TP.Hồ Chí Minh')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('Microsoft',N'TP.Hồ Chí Minh')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('Corsair',N'TP.Hồ Chí Minh')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('Gskill',N'TP.Hồ Chí Minh')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('Galax',N'TP.Hồ Chí Minh')
+INSERT INTO [dbo].[NhaSanXuat]([TENNHASX],[DIACHI])
+VALUES('HyperX',N'TP.Hồ Chí Minh')
+SELECT * FROM [dbo].[NhaSanXuat]
+/*Thêm 1 Linh Kiện Mới*/
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK001','NSX001',N'MSI B450M Mortar MAX', N'12 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',5900000,100,'/images_LinhKien/gigabyte1.png-/images_LinhKien/gigabyte2.png-/images_LinhKien/gigabyte3.png-/images_LinhKien/gigabyte4.png')
+
+/*Ram - Bộ nhớ trong*/
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK006','NSX008',N'Ram Designare Memory', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Thanh',500000,100,'/images_LinhKien/aa.png-/images_LinhKien/cc.png-/images_LinhKien/uu.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK006','NSX013',N'Corsair Vengeance RGB PRO', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Thanh',600000,100,'/images_LinhKien/kk.png-/images_LinhKien/ll.png-/images_LinhKien/Corsair Vengeance RGB PRO.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK006','NSX014',N'G.SKILL Trident Z Neo DDR4 ', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Thanh',550000,100,'/images_LinhKien/xx.png-/images_LinhKien/nn.png-/images_LinhKien/zz.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK006','NSX015',N'GALAX HOF Hall', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Thanh',650000,100,'/images_LinhKien/hof.png-/images_LinhKien/jj.png-/images_LinhKien/mn.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK006','NSX014',N'SKILL Trident Z Royal RGB ', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Thanh',450000,100,'/images_LinhKien/bc.png-/images_LinhKien/ry.png-/images_LinhKien/ryy.png')
+
+/*Mainboard – Bo mạch chủ*/
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK004','NSX008',N'GIGABYTE B450M Gaming', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',2500000,100,'/images_LinhKien/bmc.png-/images_LinhKien/mb.png-/images_LinhKien/mmb.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK004','NSX003',N'Asus B365G ROG STRIX Gaming', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',3600000,100,'/images_LinhKien/asu.png-/images_LinhKien/auss.png-/images_LinhKien/sus.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK004','NSX005',N'ASROCK B460M Pro4', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',3550000,100,'/images_LinhKien/ark.png-/images_LinhKien/pp.png-/images_LinhKien/roc.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK004','NSX006',N'MSI B450 TOMAHAWK MAX ', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',2650000,100,'/images_LinhKien/ism.png-/images_LinhKien/mns.png-/images_LinhKien/msii.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK004','NSX003',N'ASUS ROG STRIX Z390-E', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',4450000,100,'/images_LinhKien/asv2.png-/images_LinhKien/v2.png-/images_LinhKien/v2as.png')
+
+
+/*Chuột - Lót chuột*/
+
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK003','NSX009',N'Chuột Logitech G903 Hero ', N'24 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',500000,100,'/images_LinhKien/logi.png-/images_LinhKien/llt.png-/images_LinhKien/lgt.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK003','NSX001',N'Chuột Razer Viper Ultimate', N'24 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',600000,100,'/images_LinhKien/rzz.png-/images_LinhKien/raz.png-/images_LinhKien/zzr.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK003','NSX016',N'Chuột HyperX Pulsefire ', N'24 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',550000,100,'/images_LinhKien/hkt.png-/images_LinhKien/hpks.png-/images_LinhKien/hypx.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK003','NSX001',N'Lót chuột Razer Goliathus ', N'24 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',650000,100,'/images_LinhKien/lc.png-/images_LinhKien/ltt.png-/images_LinhKien/ttl.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK003','NSX013',N'Corsair MM1000 Qi Wireless', N'24 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',450000,100,'/images_LinhKien/ltc.png-/images_LinhKien/ltcon.png-/images_LinhKien/lllll.png')
+
+/*SSD – Ổ cứng*/
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK008','NSX008',N'SSD Gigabyte AORUS NVMe', N'24 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',1500000,100,'/images_LinhKien/ssdGB.png-/images_LinhKien/gigasd.png-/images_LinhKien/GBssdd.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK008','NSX004',N'Samsung SSD 970 EVO 2TB M.2', N'24 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',1600000,100,'/images_LinhKien/ssd970.png-/images_LinhKien/ssds.png-/images_LinhKien/ssssd.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK008','NSX013',N'SSD Corsair MP510 NVMe', N'24 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',1550000,100,'/images_LinhKien/cors.png-/images_LinhKien/corsairssd.png-/images_LinhKien/ssdcor.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK008','NSX004',N'SSD Samsung T7 Touch Portable', N'24 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',1650000,100,'/images_LinhKien/samsungdd.png-/images_LinhKien/ssocd.png-/images_LinhKien/ocungdd.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK008','NSX008',N'SSD Gigabyte UD PRO 256GB 2.5', N'24 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',1450000,100,'/images_LinhKien/sata3.png-/images_LinhKien/udsata.png-/images_LinhKien/3sata.png')
+
+/*Màn Hình*/
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK001','NSX002',N'Màn Hình HP EliteDisplay ', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',4500000,100,'/images_LinhKien/mhhp2.png-/images_LinhKien/mhhp3.png-/images_LinhKien/mhhp.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK001','NSX007',N'Màn hình cong AOC AGON ', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',5600000,100,'/images_LinhKien/mhcong.png-/images_LinhKien/mhaoc.png-/images_LinhKien/aoccong.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK001','NSX010',N'Màn hình Lenovo Legion ', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',5550000,100,'/images_LinhKien/lenovo1.png-/images_LinhKien/lenovo2.png-/images_LinhKien/lenovo3.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK001','NSX005',N'Màn hình Dell UltraSharp ', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',5650000,100,'/images_LinhKien/dell1.png-/images_LinhKien/dell2.png-/images_LinhKien/dell3.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK001','NSX003',N'Màn hình Asus ROG Swift ', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Cái',6450000,100,'/images_LinhKien/asus1.png-/images_LinhKien/asus2.png-/images_LinhKien/asus3.png')
+
+
+/*Tản nhiệt - Fan RGB*/
+
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK011','NSX003',N'Tản nước AIO ASUS ROG RYUJIN', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',2500000,100,'/images_LinhKien/aio2.png-/images_LinhKien/aio1.png-/images_LinhKien/aio3.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK011','NSX007',N'Tản nước AIO Corsair CPU Hydro', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',3600000,100,'/images_LinhKien/aioc1.png-/images_LinhKien/aioc2.png-/images_LinhKien/aioc3.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK011','NSX006',N'Tản nước AIO Corsair Hydro Series', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',3550000,100,'/images_LinhKien/TN01.png-/images_LinhKien/TN02.png-/images_LinhKien/TN03.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK011','NSX013',N'CORSAIR RGB LED Lighting PRO ', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',2650000,100,'/images_LinhKien/rgb01.png-/images_LinhKien/rgb02.png-/images_LinhKien/rgb03.png')
+
+/*PSU – nguồn máy tính*/
+
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK009','NSX003',N'Nguồn ASUS Rog Thor 1200P ', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',2500000,100,'/images_LinhKien/psu1200p1.png-/images_LinhKien/psu1200p2.png-/images_LinhKien/psu1200p3.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK009','NSX013',N'Nguồn máy tính Corsair RM750x ', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',3600000,100,'/images_LinhKien/psurm750x01.png-/images_LinhKien/psurm750x02.png-/images_LinhKien/psurm750x03.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK009','NSX013',N'Corsair AX1600i Digital ATX', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',3550000,100,'/images_LinhKien/cosair_ax1600i01.png-/images_LinhKien/cosair_ax1600i02.png-/images_LinhKien/cosair_ax1600i03.png')
+INSERT INTO [dbo].[LinhKien]([MALOAI],[MANHASX],[TENLK],[BAOHANH],[NGAYSANXUAT],[TINHTRANG],[DONVITINH],[DONGIA],[SOLUONG],[IMAGES])
+VALUES('LLK009','NSX003',N'Nguồn Asus ROG STRIX 650G 650W', N'36 tháng','2020-04-15',N'Mới - FullBox 100%',
+N'Bộ',2650000,100,'/images_LinhKien/rox_strix01.png-/images_LinhKien/rox_strix02.png-/images_LinhKien/rox_strix03.png')
+
+DELETE FROM LinhKien
+/*Thêm nhà cung cấp*/
+
+INSERT INTO [dbo].[NhaCungCap]([TENNHACC],[DIACHI],[SODT],[EMAIL],[IMAGES])
+VALUES('GearVN',N'Tân Bình, TP.Hồ Chí Minh','0987699999','Gearvn@gmail.com','E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[NhaCungCap]([TENNHACC],[DIACHI],[SODT],[EMAIL],[IMAGES])
+VALUES('XGear',N'Tân Bình, TP.Hồ Chí Minh','09876888888','Xgear@gmail.com','E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[NhaCungCap]([TENNHACC],[DIACHI],[SODT],[EMAIL],[IMAGES])
+VALUES(N'Phong Vũ',N'Gò Vấp, TP.Hồ Chí Minh','0987699779','phongvu@gmail.com','E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+INSERT INTO [dbo].[NhaCungCap]([TENNHACC],[DIACHI],[SODT],[EMAIL],[IMAGES])
+VALUES(N'An Phát Computer',N'49 Thái hà, TP.Hà Nội','0987696699','anphat@gmail.com','E:\Nhom01_QuanLyMuaBanLinhKien_PTUD\src\images\user11.png')
+
+DELETE FROM NhaCungCap
+/*Thêm tài khoản*/
+INSERT INTO [dbo].[TaiKhoan]([TENDN],[MATKHAU],MA,[TEN],[QUYEN])
+VALUES('hung254','12345','KH001','Nguyễn Văn Hùng','Khách Hàng')
+INSERT INTO [dbo].[TaiKhoan]([TENDN],[MATKHAU],MA,[TEN],[QUYEN])
+VALUES('anh2345','12345','NV001','Nguyễn Văn Anh','Nhân Viên Kinh Doanh')
+INSERT INTO [dbo].[TaiKhoan]([TENDN],[MATKHAU],MA,[TEN],[QUYEN])
+VALUES('datqv','12345','NV004','Lê Thạc Đạt','Nhân Viên Kế Toán')/*nhân viên kĩ thuật */
+
+DELETE FROM [dbo].[TaiKhoan]
+
+DELETE FROM LINHKIEN
+/*lệnh*/
+SELECT * FROM [dbo].[LinhKien]
+SELECT HD.MaHDBH,hd.NGAYLAPHD,nv.TENNV,kh.TENKH,kh.DIENTHOAI,kh.DIACHI 
+FROM [dbo].[HoaDonBanHang] hd JOIN [dbo].[NhanVien] NV ON HD.MANV = HD.MANV
+JOIN [dbo].[KhachHang] kh ON hd.MAKH =kh.MAKH
+SELECT hd.MAHDBH,hd.NGAYLAPHD,nv.TENNV,kh.TENKH,kh.DIENTHOAI,kh.DIACHI ,lk.TenLK,llk.TENLOAI,nsx.TENNHASX,
+cthd.SOLUONG,lk.DonGia,lk.BAOHANH,cthd.SOLUONG * lk.DONGIA AS ThanhTien
+FROM [dbo].[CT_HoaDonBanHang] cthd JOIN [dbo].[HoaDonBanHang] hd ON cthd.MAHDBH = hd.MAHDBH
+JOIN [dbo].[NhanVien] NV ON HD.MANV = NV.MANV
+JOIN [dbo].[KhachHang] kh ON hd.MAKH =kh.MAKH
+JOIN [dbo].[LinhKien] lk ON cthd.MaLK = lk.MALK
+JOIN [dbo].[LoaiLinhKien] llk ON llk.MALOAI = lk.MALOAI
+JOIN [dbo].[NhaSanXuat] nsx ON nsx.MANHASX = lk.MANHASX
+WHERE hd.MAHDBH = 'HDBH004'
+SELECT hd.MAHDNH,hd.NGAYLAPHD,nv.TENNV,ncc.TENNHACC,ncc.SODT,ncc.DIACHI ,lk.TenLK,llk.TENLOAI,nsx.TENNHASX,
+cthd.SOLUONG,lk.DonGia,lk.BAOHANH,cthd.SOLUONG * lk.DONGIA AS ThanhTien
+FROM [dbo].[CT_HoaDonNhapHang] cthd JOIN [dbo].[HoaDonNhapHang] hd ON cthd.MAHDNH = hd.MAHDNH
+JOIN [dbo].[NhanVien] NV ON HD.MANV = HD.MANV
+JOIN [dbo].[NhaCungCap] ncc ON ncc.MANHACC = hd.MANHACC
+JOIN [dbo].[LinhKien] lk ON cthd.MaLK = lk.MALK
+JOIN [dbo].[LoaiLinhKien] llk ON llk.MALOAI = lk.MALOAI
+JOIN [dbo].[NhaSanXuat] nsx ON nsx.MANHASX = lk.MANHASX
+WHERE hd.MAHDNH = 'HDNH001'
+
+SELECT lk.MALK,lk.TENLK,llk.TENLOAI,nsx.TENNHASX,lk.BAOHANH,lk.DONVITINH,lk.DONGIA,ct.SOLUONG
+FROM [dbo].[HoaDonBanHang] hd JOIN [dbo].[CT_HoaDonBanHang] ct ON hd.MaHDBH = ct.MaHDBH
+JOIN [dbo].[LinhKien] lk ON lk.MALK = ct.MALK
+JOIN [dbo].[LoaiLinhKien] llk ON llk.MALOAI = lk.MALOAI
+JOIN [dbo].[NhaSanXuat] nsx ON nsx.MANHASX = lk.MANHASX
+WHERE DAY(hd.NGAYLAPHD) = DAY(GETDATE())
+GROUP BY hd.MaHDBH
+
+SELECT lk.MALK,lk.TENLK,llk.TENLOAI,nsx.TENNHASX,lk.BAOHANH,lk.DONVITINH,lk.DONGIA,ct.SOLUONG
+FROM [dbo].HoaDonNhapHang hd JOIN [dbo].CT_HoaDonNhapHang ct ON hd.MaHDNH = ct.MaHDNH
+JOIN [dbo].[LinhKien] lk ON lk.MALK = ct.MALK
+JOIN [dbo].[LoaiLinhKien] llk ON llk.MALOAI = lk.MALOAI
+JOIN [dbo].[NhaSanXuat] nsx ON nsx.MANHASX = lk.MANHASX
+WHERE MONTH(hd.NGAYLAPHD) = MONTH(GETDATE())
+
+SELECT lk.MALK,lk.TENLK,llk.TENLOAI,nsx.TENNHASX,lk.BAOHANH,lk.DONVITINH,lk.DONGIA,lk.SOLUONG
+FROM [dbo].[LinhKien] lk JOIN [dbo].[LoaiLinhKien] llk ON llk.MALOAI = lk.MALOAI
+JOIN [dbo].[NhaSanXuat] nsx ON nsx.MANHASX = lk.MANHASX
+DELETE FROM CHUCVU
+DELETE FROM 
+SELECT *FROM NHANVIEN
+DELETE FROM HoaDonNhapHang
+
+SELECT * FROM [dbo].[HoaDonBanHang] WHERE DAY(NGAYLAPHD) = DAY(GETDATE())
+
+SELECT hd.MAHDBH,hd.NGAYLAPHD,nv.TENNV,kh.TENKH,kh.DIENTHOAI,kh.DIACHI ,lk.TenLK,llk.TENLOAI,nsx.TENNHASX,
+cthd.SOLUONG,lk.DonGia,lk.BAOHANH,cthd.SOLUONG * lk.DONGIA AS ThanhTien
+FROM [dbo].[CT_HoaDonBanHang] cthd JOIN [dbo].[HoaDonBanHang] hd ON cthd.MAHDBH = hd.MAHDBH
+JOIN [dbo].[NhanVien] NV ON HD.MANV = HD.MANV
+JOIN [dbo].[KhachHang] kh ON hd.MAKH =kh.MAKH
+JOIN [dbo].[LinhKien] lk ON cthd.MaLK = lk.MALK
+JOIN [dbo].[LoaiLinhKien] llk ON llk.MALOAI = lk.MALOAI
+JOIN [dbo].[NhaSanXuat] nsx ON nsx.MANHASX = lk.MANHASX
+WHERE hd.MAHDBH = 'HDBH005'
